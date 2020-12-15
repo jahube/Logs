@@ -1,4 +1,6 @@
-﻿$ErrorActionPreference = 'Stop';
+﻿#source: //https://aka.ms/hybridconnectivity
+
+$ErrorActionPreference = 'Stop';
 
 Function GetAuthToken
 {
@@ -295,9 +297,9 @@ Function Test-HybridConnectivity
         [pscustomobject]@{uri = 'login.windows.net'; port = '443' },
         [pscustomobject]@{uri = 'login.microsoftonline.com'; port= '443' })
 
-    # TODO - Derive this automatically from the bootstrap endpoint.
+ <#   # TODO - Derive this automatically from the bootstrap endpoint.
     $appProxyEndpoints = @(
-        [pscustomobject]@{uri = 'watchdog.servicebus.windows.net'; port= '443' })
+        [pscustomobject]@{uri = 'watchdog.servicebus.windows.net'; port= '443' }) #>
 
     $o365Endpoints = @(
         [pscustomobject]@{uri = 'outlook.office.com'; port = '443' },
@@ -311,8 +313,8 @@ Function Test-HybridConnectivity
     # Logon Endpoints
     TestEndpoints $httpsEndpoints
 
-    # AppProxy Endpoints
-    TestEndpoints $appProxyEndpoints $true
+ <#   # AppProxy Endpoints
+    TestEndpoints $appProxyEndpoints $true #>
     
     if ($testO365Endpoints) {
       # O365 Endpoints
