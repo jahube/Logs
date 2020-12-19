@@ -21,10 +21,11 @@ Get-Recipient -RecipientTypeDetails PublicFolderMailbox | Export-clixml $logsPAT
 Get-Recipient -RecipientTypeDetails PublicFolderMailbox | Get-MailboxStatistics | Export-clixml $logsPATH\RecStat.xml
 try { Get-Mailbox -PublicFolder -SoftDeletedMailbox | export-clixml $logsPATH\deleted-PFMBX.xml -EA stop } catch { write-host $Error[0] }
 try { Get-Mailbox -PublicFolder -SoftDeletedMailbox | select -expandproperty emailaddresses | FL > $logsPATH\SoftDeleted-MEPF-Aliases.txt } catch { write-host $Error[0] } 
-IF ($ITEMSSubfolder -ne "/Sub/Folder") { try { Get-PublicFolder $ITEMSSubfolder -Recurse | Get-PublicFolderItemStatistics | ?{$_.ItemType -eq "IPM.Contact"} | Export-CliXML $logsPATH\Contact-Items.xml -EA stop } catch { write-host $Error[0] } }
-IF ($ITEMSSubfolder -ne "/Sub/Folder") { try { Get-PublicFolder $ITEMSSubfolder -Recurse | Get-PublicFolderItemStatistics | ?{$_.ItemType -eq "IPM.Note"} | Export-CliXML $logsPATH\Message-Items.xml -EA stop } catch { write-host $Error[0] } }
-IF ($ITEMSSubfolder -ne "/Sub/Folder") { try { Get-PublicFolder $ITEMSSubfolder -Recurse | Get-PublicFolderItemStatistics | ?{$_.ItemType -eq "IPF.Contact"} | FT > $logsPATH\IPF.Contact.txt -EA stop } catch { write-host $Error[0] } }
-IF ($ITEMSSubfolder -ne "/Sub/Folder") { try { Get-PublicFolder $ITEMSSubfolder -Recurse | Get-PublicFolderItemStatistics | ?{$_.ItemType -eq "IPF.Note"} | FT > $logsPATH\IPF.Note.txt -EA stop } catch { write-host $Error[0] } }
+IF ($ITEMSSubfolder -ne "/Sub/Folder") { try { $ITEMS = Get-PublicFolder $ITEMSSubfolder -Recurse | Get-PublicFolderItemStatistics -EA stop } catch { write-host $Error[0] } }
+IF ($ITEMS) { try { $ITEMS | ?{$_.ItemType -eq "IPM.Contact"} | Export-CliXML $logsPATH\Contact-Items.xml -EA stop } catch { write-host $Error[0] } }
+IF ($ITEMS) { try { $ITEMS | ?{$_.ItemType -eq "IPM.Note"} | Export-CliXML $logsPATH\Message-Items.xml -EA stop } catch { write-host $Error[0] } }
+IF ($ITEMS) { try { $ITEMS | ?{$_.ItemType -eq "IPF.Contact"} | Export-CliXML $logsPATH\Contact-Folders.xml -EA stop } catch { write-host $Error[0] } }
+IF ($ITEMS) { try { $ITEMS | ?{$_.ItemType -eq "IPF.Note"} | Export-CliXML $logsPATH\Message-Folders.xml -EA stop } catch { write-host $Error[0] } }
 
 Stop-Transcript
 
