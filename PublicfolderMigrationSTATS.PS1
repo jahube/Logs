@@ -13,7 +13,12 @@ $FormatEnumerationLimit = -1
 $PFMigbatch = Get-MigrationBatch -DiagnosticInfo Verbose -IncludeReport | ?{$_.MigrationType.ToString() -eq "PublicFolder"}
 $PFMigbatch | export-clixml $logsPATH\EXO_PFMigbatch.xml
 
-$PFMigbatch | Get-MigrationUserStatistics -DiagnosticInfo Verbose -IncludeReport | Export-CliXML "$logsPATH\EXO_PFmbxmigUserStats.xml"
+$PFMiguser = get-migrationuser -batchid "PublicfolderMigration"
+# $PFMiguser = $PFMigbatch | get-migrationuser
+
+$PFMiguser | Export-CliXML $logsPATH\EXO_PFMiguser.xml
+$PFMiguserStats = $PFMiguser | Get-MigrationUserStatistics -DiagnosticInfo Verbose -IncludeReport
+$PFMiguserStats | Export-CliXML "$logsPATH\EXO_PFmbxmigUserStats.xml"
 
 $PFMigReq = Get-PublicFolderMailboxMigrationRequest
 $PFMigReqStats = $PFMigReq | Get-PublicFolderMailboxMigrationRequestStatistics -IncludeReport -DiagnosticInfo Verbose
