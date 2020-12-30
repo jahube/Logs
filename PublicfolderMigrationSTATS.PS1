@@ -10,18 +10,19 @@ $logsPATH =mkdir "$DesktopPath\MS-Logs\Public_Folder_Migration_Stats_$ts"
 Start-Transcript "$logsPATH\Public_Folder_Migration_Stats_$ts"
 $FormatEnumerationLimit = -1
 
-$PFMs = get-mailbox -publicfolder | FT Displayname,userprincipalname,primarySMTPaddress
-ForEach ($PFM in $PFMs.userprincipalname) { $upath = $($logsPATH + '\' + "$PFM" + '_EXO_PFmbxmigUserStats.xml')
-Get-MigrationUserStatistics $PFM -DiagnosticInfo Verbose -IncludeReport | Export-CliXML "$upath" }
-Get-PublicFolderMailboxMigrationRequest | Get-PublicFolderMailboxMigrationRequestStatistics -IncludeReport -DiagnosticInfo Verbose | Export-CliXML $logsPATH\EXO_PFMigReq.xml
-Get-MigrationBatch -DiagnosticInfo Verbose -IncludeReport | ?{$_.MigrationType.ToString() -eq "PublicFolder"} | export-clixml $logsPATH\EXO_PFMigbatch.xml
+$PFMigbatch = Get-MigrationBatch -DiagnosticInfo Verbose -IncludeReport | ?{$_.MigrationType.ToString() -eq "PublicFolder"}
+$PFMigbatch | export-clixml $logsPATH\EXO_PFMigbatch.xml
+$PFMigbatch | Get-MigrationUserStatistics -DiagnosticInfo Verbose -IncludeReport | Export-CliXML "$logsPATH\EXO_PFmbxmigUserStats.xml"
+$PFMigReq = Get-PublicFolderMailboxMigrationRequest
+$PFMigReqStats = $PFMigReq | Get-PublicFolderMailboxMigrationRequestStatistics -IncludeReport -DiagnosticInfo Verbose
+$PFMigReqStats | Export-CliXML $logsPATH\EXO_PFMigReq.xml
+
 # large items: 
-$pf=Get-PublicFolderMailboxMigrationRequest | Get-PublicFolderMailboxMigrationRequestStatistics -IncludeReport;
-$largeitems = ForEach ($i in $pf) {if ($i.LargeItemsEncountered -gt 0) {$i.TargetMailbox.Name,$i.report.largeitems.messagesize}}
+$largeitems = ForEach ($i in $PFMigReqStats) {if ($i.LargeItemsEncountered -gt 0) {$i.TargetMailbox.Name,$i.report.largeitems.messagesize}}
 $largeitems | Export-CliXML $logsPATH\EXO_PFMig_largeitems.xml
+
 # bad items: 
-$pf=Get-PublicFolderMailboxMigrationRequest | Get-PublicFolderMailboxMigrationRequestStatistics -IncludeReport; 
-$baditems = ForEach ($i in $pf) {if ($i.BadItemsEncountered -gt 0) {$i.TargetMailbox.Name,$i.report.baditems.subject}}
+$baditems = ForEach ($i in $PFMigReqStats) {if ($i.BadItemsEncountered -gt 0) {$i.TargetMailbox.Name,$i.report.baditems.subject}}
 $baditems | Export-CliXML $logsPATH\EXO_PFMig_baditems.xml
 
 Stop-Transcript
