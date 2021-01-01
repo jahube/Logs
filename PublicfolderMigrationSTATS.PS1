@@ -21,7 +21,8 @@ $PFMiguserStats = $PFMiguser | Get-MigrationUserStatistics -DiagnosticInfo Verbo
 $PFMiguserStats | Export-CliXML "$logsPATH\EXO_PFmbxmigUserStats.xml"
 
 $PFMigReq = Get-PublicFolderMailboxMigrationRequest
-$PFMigReqStats = $PFMigReq | Get-PublicFolderMailboxMigrationRequestStatistics -IncludeReport -DiagnosticInfo Verbose
+$PFMigReqStats = $PFMigReq | Get-PublicFolderMailboxMigrationRequestStatistics -IncludeReport -DiagnosticInfo showtimeline,showtimeslots,verbose
+Verbose
 $PFMigReqStats | Export-CliXML $logsPATH\EXO_PFMigReq.xml
 
 # large items: 
