@@ -7,7 +7,7 @@ $ts = Get-Date -Format yyyyMMdd_hhmmss
 $DesktopPath = ([Environment]::GetFolderPath('Desktop'))
 $logsPATH =mkdir "$DesktopPath\MS-Logs\Public_Folder_Migration_Stats_$ts"
 
-Start-Transcript "$logsPATH\Public_Folder_Migration_Stats_$ts"
+Start-Transcript "$logsPATH\Public_Folder_Migration_Stats_$ts.txt"
 $FormatEnumerationLimit = -1
 
 $PFMs = get-mailbox -publicfolder | FT Displayname,userprincipalname,primarySMTPaddress
