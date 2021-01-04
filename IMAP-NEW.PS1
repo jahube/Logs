@@ -1,14 +1,21 @@
-# connect Powershell ISE to Exchange Online
+# <<==============   connect Powershell ISE to Exchange Online   ==========================>>
 
 # install-module exchangeonlinemanagement
 # connect-exchangeonline -userprincipalname "ADMIN@DOMAIN.com"
 
+
 # Open in Powershell ISE {Ctrl+N} and edit the marked below
 
+# <<================ Required Variables ===================================================>>
 $Mailbox = "User@contoso.com" # CHANGE
-$Batch = "User1 Contoso com"  # CHANGE
-$MigrationEndpoint = "IMAP Endpoint mail.contoso.com" # CHANGE
 
+$Batch = "User1 Contoso com"  # CHANGE
+# Get-MigrationBatch | FT  or Get-MigrationBatch | FL  to get the batch details
+
+$MigrationEndpoint = "IMAP Endpoint mail.contoso.com" # CHANGE  
+# Get-MigrationEndpoint | FT  or Get-MigrationEndpoint| FL  to get the details
+
+# <<================ Run Logs ( F5 all or F8 for RUN selected ============================>>
 # desktop/MS-Logs+Timestamp
 $ts = Get-Date -Format yyyyMMdd_hhmmss
 $DesktopPath = ([Environment]::GetFolderPath('Desktop'))
@@ -42,3 +49,5 @@ Add-Type -assembly “system.io.compression.filesystem”
 [io.compression.zipfile]::CreateFromDirectory($logsPATH, $destination) # ZIP
 Invoke-Item $DesktopPath\MS-Logs # open file manager
 ###### END ZIP Logs ########################
+
+# <<=======================================================================================>>
