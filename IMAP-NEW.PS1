@@ -31,7 +31,7 @@ Get-MigrationUser $Mailbox | Export-Clixml $logsPATH\MigrationUser_$Mailbox.xml
 
 Get-MigrationUserStatistics $Mailbox -IncludeSkippedItems -IncludeReport -DiagnosticInfo "showtimeslots, showtimeline, verbose" | Export-Clixml $logsPATH\MigrationUserStatistics_$Mailbox.xml
 
-Get-SyncRequest -Mailbox $Mailbox | Export-Clixml C:\Temp\MSSupport\SyncRequest_$Mailbox.xml
+Get-SyncRequest -Mailbox $Mailbox | Export-Clixml $logsPATH\MSSupport\SyncRequest_$Mailbox.xml
 
 Get-SyncRequestStatistics $Mailbox -IncludeReport -DiagnosticInfo "showtimeslots, showtimeline, verbose" | Export-Clixml $logsPATH\SyncRequestStatistics_$Mailbox.xml
 
