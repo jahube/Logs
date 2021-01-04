@@ -9,7 +9,6 @@ $Mailbox = "User@contoso.com" # CHANGE
 $Batch = "User1 Contoso com"  # CHANGE
 $MigrationEndpoint = "IMAP Endpoint mail.contoso.com" # CHANGE
 
-
 # desktop/MS-Logs+Timestamp
 $ts = Get-Date -Format yyyyMMdd_hhmmss
 $DesktopPath = ([Environment]::GetFolderPath('Desktop'))
