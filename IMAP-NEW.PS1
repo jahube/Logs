@@ -33,7 +33,7 @@ Get-MigrationUserStatistics $Mailbox -IncludeSkippedItems -IncludeReport -Diagno
 
 Get-SyncRequest -Mailbox $Mailbox | Export-Clixml $logsPATH\MSSupport\SyncRequest_$Mailbox.xml
 
-Get-SyncRequestStatistics $Mailbox -IncludeReport -DiagnosticInfo "showtimeslots, showtimeline, verbose" | Export-Clixml $logsPATH\SyncRequestStatistics_$Mailbox.xml
+Get-SyncRequest -Mailbox $Mailbox | Get-SyncRequestStatistics -IncludeReport -DiagnosticInfo "showtimeslots, showtimeline, verbose" | Export-Clixml $logsPATH\SyncRequestStatistics_$Mailbox.xml
 
 # IMAP_Optional
 Get-MigrationEndpoint $MigrationEndpoint -DiagnosticInfo Verbose | Export-Clixml $logsPATH\MigrationEndpoint_$MigrationEndpoint.xml
