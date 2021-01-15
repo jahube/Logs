@@ -2,16 +2,17 @@
 
 Start-transcript
 
-$Source_Credential = Get-Credential <source_domain\PublicFolder_Administrator_Account>
+$Admin = "LOCAL\Admin"
 
 $PFExchangeserver "EXPFEXAMPLE" # Publicfolder Database Server
 
-$Source_RemoteMailboxLegacyDN = (Get-Mailbox <PublicFolder_Administrator_Account>).LegacyExchangeDN
+$Source_Credential = Get-Credential $Admin
+# $Source_RemoteMailboxLegacyDN = (Get-Mailbox "ADMIN")[1]).LegacyExchangeDN
+$Source_RemoteMailboxLegacyDN = (Get-Mailbox $($Admin -split "\")[1]).LegacyExchangeDN
+$Source_RemotePublicFolderServerLegacyDN = (Get-ExchangeServer $PFExchangeserver)[0].ExchangeLegacyDN
 
-$Source_RemotePublicFolderServerLegacyDN = (Get-ExchangeServer $PFExchangeserver).ExchangeLegacyDN
-
-$Source_OutlookAnywhereExternalHostName = (Get-OutlookAnywhere).ExternalHostName
-# $Source_OutlookAnywhereExternalHostName = "mail.mireb.msftonlinerepro.com"
+$Source_OutlookAnywhereExternalHostName = (Get-OutlookAnywhere)[0].ExternalHostName
+# $Source_OutlookAnywhereExternalHostName = "mail.server.com"
 
 # (Get-OutlookAnywhere).ClientAuthenticationMethod
 $auth = “Ntlm”
