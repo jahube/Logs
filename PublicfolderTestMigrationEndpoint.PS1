@@ -8,7 +8,7 @@ $ExchServerPF "EX01PF" # Exchange PF DB
 $auth = “Ntlm”
 
 $Source_Credential = Get-Credential $Admin
-$Source_RemoteMBXDN = (Get-Mailbox $($Admin -split "\")[1]).LegacyExchangeDN
+$Source_RemoteMBXDN = (Get-Mailbox $($Admin -split "\\")[1]).LegacyExchangeDN
 $SourcePFDBServerDN = (Get-ExchangeServer $ExchServerPF)[0].ExchangeLegacyDN
 $OutlookAnywhereEHN = (Get-OutlookAnywhere)[0].ExternalHostName
 $Param = @{           PublicFolder = $true
