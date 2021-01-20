@@ -20,7 +20,7 @@ $MoveReqStats = Get-MoveRequestStatistics $Mailbox -IncludeReport -DiagnosticInf
 $MoveReqStats | Export-Clixml $logsPATH\MoveRequestStatistics_$Mailbox.xml
 
 # Hybrid_Optional
-Get-MigrationEndpoint -DiagnosticInfo Verbose | Export-Clixml $logsPATH\MigrationEndpoint_$MigrationEndpoint.xml
+Get-MigrationEndpoint -DiagnosticInfo Verbose | Export-Clixml $logsPATH\MigrationEndpoint.xml
 Get-MigrationConfig | Export-Clixml $logsPATH\MigrationConfig.xml
 
 ### If the move completed
