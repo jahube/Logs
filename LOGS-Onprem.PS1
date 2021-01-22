@@ -1,9 +1,9 @@
-$OnpremMailbox = $((Get-Mailbox)[-1].primarysmtpaddress)
-$CloudMailbox = $((Get-RemoteMailbox)[-1].primarysmtpaddress)
+# Run All in Exchange management shell 
+#  >> set-executionpolicy bypass << if you run frome .\script.ps1 file
 
-# OR Edit below + remove '#'
-# $OnpremMailbox = "synced@OnPremUser.com"
-# $CloudMailbox = "migrated@CloudUser.com" # REMOTE-Mailbox / migrated (synced with onprem) - Thank You !
+$OnpremMailbox = "synced@OnPremUser.com" # <-- Modify
+
+$CloudMailbox = "migrated@CloudUser.com" # <-- Modify
 
 # desktop/MS-Logs+Timestamp
 $ts = Get-Date -Format yyyyMMdd_hhmmss
@@ -31,11 +31,15 @@ Get-IntraOrganizationConfiguration | fl
 Get-IntraOrganizationConnector | fl
 Get-AvailabilityAddressSpace | fl
 
+$MBX = Get-Mailbox $OnpremMailbox -EA silentlycontinue ; IF ((!($MBX)) -or ($_.MailboxMoveRemoteHostName -notlike "*.onmicrosoft.com")) { 
+Write-host "$CloudMailbox invalid" -F yellow ; $MBX = (Get-Mailbox | Where-Object {$_.MailboxMoveRemoteHostName -like "*.onmicrosoft.com"})[-1] } 
+$OnpremMailbox = $($MBX.primarysmtpaddress) ; IF (!($OnpremMailbox)) { $OnpremMailbox = $((Get-Mailbox)[-1].primarysmtpaddress)}
+
 write-host "Test-OAuthConnectivity"
 Test-OAuthConnectivity -Service EWS -TargetUri https://outlook.office365.com/ews/exchange.asmx -Mailbox $OnpremMailbox -Verbose | fl
 Test-OAuthConnectivity -Service AutoD  -TargetUri https://autodiscover-s.outlook.com/autodiscover/autodiscover.svc -Mailbox $OnpremMailbox -Verbose | fl
 
-Get-Mailbox $OnpremMailbox | fl
+$MBX | fl
 Get-RemoteMailbox $CloudMailbox | fl
 Get-OrganizationRelationship | fl
 Get-OrganizationConfig | fl
