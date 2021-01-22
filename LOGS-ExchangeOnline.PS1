@@ -1,5 +1,5 @@
 # REMOTE-Mailbox / migrated (synced with onprem) - Thank You !
-$CloudMailbox = "Any@Remote-Mailbox.com" 
+$CloudMailbox = "Any@Remote-Mailbox.com"  # <-- Modify
 
 # Auto - select + run to verify
 $MigrationEndpoint = (Get-MigrationEndpoint | ? {$_.identity -match "Hybrid"}).remoteserver ; $EwsEndpointURI = 'https://' + $MigrationEndpoint +  '/ews/exchange.asmx'; $EwsEndpointURI # Onprem EWS
@@ -23,7 +23,8 @@ Get-AuthServer –Identity 00000001-0000-0000-c000-000000000000 | fl
 Get-PartnerApplication | fl
 
 $MBX = Get-Mailbox $CloudMailbox -EA silentlycontinue ; 
-IF (!($MBX)) { Write-host "$CloudMailbox invalid" -F yellow ; $MBX = (Get-Mailbox)[-1] ; $CloudMailbox = $($MBX.primarysmtpaddress) } #fallback if $CloudMailbox is invalid
+IF ((!($MBX)) -or ($MBX.isdirsynced -ne 'true')) { Write-host "$CloudMailbox invalid" -F yellow ; $MBX = (Get-Mailbox | where {$_.isdirsynced -eq 'true' })[-1] } #fallback if $CloudMailbox is invalid ; 
+$CloudMailbox = $($MBX.primarysmtpaddress) 
 $MBX | fl ; (Get-MailUser)[-1] | fl
 
 write-host "Test-OAuthConnectivity"
