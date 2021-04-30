@@ -1,37 +1,39 @@
+# CONNECT Exchange Online
+# [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+# Register-PSRepository -Default
+# install-module ExchangeOnlineManagement -SkipPublisherCheck
+# install-module -name PowershellGet -Force -SkipPublisherCheck
+# Uninstall-Module PowershellGet -MaximumVersion "1.0.0.1" -Force -Confirm:$false -EA stop
 
-$Mailbox = "User@contoso.com" # < -- <AffectedMailbox>
-
-$Batch = "User1 Contoso com"  # < -- <BatchName>
+ IF (!(get-accepteddomain -EA silentlycontinue)) { Connect-ExchangeOnline }
 
 $ts = Get-Date -Format yyyyMMdd_hhmmss ; $FormatEnumerationLimit = -1
 $DesktopPath = ([Environment]::GetFolderPath('Desktop'))
-$logsPATH =mkdir "$DesktopPath\MS-Logs\Migration-Stats-$ts"
+[String]$logsPATH = [String]$(mkdir "$DesktopPath\MS-Logs\Migration-Stats-$ts")
 Start-Transcript "$logsPATH\Migration-Stats-$ts.txt" -Verbose
 
-$Migbatch = Get-MigrationBatch $Batch -IncludeReport -DiagnosticInfo "showtimeslots, showtimeline, verbose" 
-$Migbatch | Export-Clixml $logsPATH\MigrationBatch_$Batch.xml
-$Miguser = Get-MigrationUser $Mailbox
-$Miguser | Export-Clixml $logsPATH\MigrationUser_$Mailbox.xml
-$Migstats = Get-MigrationUserStatistics $Mailbox -IncludeSkippedItems -IncludeReport -DiagnosticInfo "showtimeslots, showtimeline, verbose" 
-$Migstats | Export-Clixml $logsPATH\MigrationUserStatistics_$Mailbox.xml
-$MoveReq = Get-MoveRequest $Mailbox 
-$MoveReq | Export-Clixml $logsPATH\MoveRequest_$Mailbox.xml
-$MoveReqStats = Get-MoveRequestStatistics $Mailbox -IncludeReport -DiagnosticInfo "showtimeslots, showtimeline, verbose" 
-$MoveReqStats | Export-Clixml $logsPATH\MoveRequestStatistics_$Mailbox.xml
-
-# Hybrid_Optional
-Get-MigrationEndpoint -DiagnosticInfo Verbose | Export-Clixml $logsPATH\MigrationEndpoint.xml
-Get-MigrationConfig | Export-Clixml $logsPATH\MigrationConfig.xml
-
-### If the move completed
-$MailboxStats = Get-MailboxStatistics $Mailbox -IncludeMoveReport -IncludeMoveHistory 
-$MailboxStats | Export-Clixml $logsPATH\MailboxStatistics_$Mailbox.xml
-$Move = Get-MailboxStatistics $Mailbox -IncludeMoveReport -IncludeMoveHistory
-$Move.MoveHistory[0] | Export-Clixml $logsPATH\MoveReport.xml
+$MigBatch = get-migrationbatch ; $MigUsers = get-migrationuser ; $MovReqst = Get-MoveRequest
+$StatusComplete = @("Completed", "CompletedWithErrors") ; $StatusProgress = @("Synced", "Syncing", "SyncedWithErrors", "Failed", "Completing")
+$MigBatchCompleted = $MigBatch | where { $_.status.value -in $StatusComplete } ; $MigUsersInProgess = $MigUsers | where { $_.status -in $StatusProgress }
+$MigBatchInProgess = $MigBatch | where { $_.status.value -in $StatusProgress } ; $MigUsersCompleted = $MigUsers | where { $_.status -in $StatusComplete }
+$MigUser | FT Identity,Identifier,BatchId,MailboxIdentifier,MailboxEmailAddress,MailboxGuid,Status,StatusSummary,HasUnapprovedSkippedItems,DataConsistencyScore -AutoSize
+$MovReqst | FT Id,Identity,Name,Alias,ExternalDirectoryObjectId,ExchangeGuid,Status,BatchName -AutoSize
+$MigBatch | FT Identity,Status,State,WorkflowStage,DataConsistencyScore,MigrationType,StartDateTime,LastSyncedDateTime -AutoSize
+ForEach ($M in $MigBatch) { [String]$Path = [String]$logsPATH + '\' + [String]$M.Identity + "_$($M.Status.value)_"
+Get-MigrationBatch $M.Identity.Id -IncludeReport -DiagnosticInfo "showtimeslots, showtimeline, verbose" | Export-Clixml "$($Path + 'MigrationBatch.xml')" }
+ForEach ($M in $MigUsersInProgess) { [String]$Path = [String]$logsPATH + '\' + [String]$M.Identity + "_$($M.BatchId)_$($M.Status)_"
+Get-MigrationUserStatistics $M.Identity -IncludeSkippedItems -IncludeReport -DiagnosticInfo "showtimeslots, showtimeline, verbose" | Export-Clixml "$($Path + 'MigrationUser.xml')"
+Get-MoveRequest $M.Identity | Export-Clixml "$($Path + '_MoveRequest.xml')"
+Get-MoveRequestStatistics $M.Identity -IncludeReport -DiagnosticInfo "showtimeslots, showtimeline, verbose" | Export-Clixml "$($Path + 'MoveRequestStatistics.xml')" }
+ForEach ($M in $MigUsersCompleted) { [String]$Path = [String]$logsPATH + '\' + [String]$M.Identity + "_$($M.Status)_"
+$MbxStats = Get-MailboxStatistics $M.Identity -IncludeMoveReport -IncludeMoveHistory
+$MbxStats | Export-Clixml "$($Path + 'MailboxStatistics.xml')" ; $MbxStats.MoveHistory[0] | Export-Clixml "$($Path + 'MoveReport.xml')" }
 
 Stop-Transcript
+$error | Export-Clixml -Depth 4 "$logsPATH\Error-$ts.XML"
+Compress-Archive -Path $logsPATH -DestinationPath "$DesktopPath\MS-Logs\Migration-Stats-$ts.zip" # Zip Logs
+Invoke-Item $DesktopPath\MS-Logs           # open Logs Folder in file manager
+###### END ZIP Logs ########################
 
-$destination = "$DesktopPath\MS-Logs\Migration-Stats-$ts.zip"
-Add-Type -assembly “system.io.compression.filesystem”
-[io.compression.zipfile]::CreateFromDirectory($logsPATH, $destination) # ZIP
-Invoke-Item $DesktopPath\MS-Logs # open file manager
+###### Error XML - ONLY if necessary #######
+$error | Export-Clixml -Depth 4 "$DesktopPath\MS-Logs\Errors-$ts.XML"
