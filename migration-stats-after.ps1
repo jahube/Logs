@@ -20,7 +20,7 @@ $MigratedMBX | fl WhenMailboxCreated
 
 ForEach ($M in $MigUsersCompleted) { [String]$Path = [String]$logsPATH + '\' + [String]$M.Identity + "_$($M.Status)_"
 
-$MbxStats = Get-MailboxStatistics $M.userprincipalname -IncludeMoveReport -IncludeMoveHistory
+$MbxStats = Get-MailboxStatistics $M.userprincipalname -IncludeSoftDeletedRecipients -IncludeMoveReport -IncludeMoveHistory
 $MbxStats | Export-Clixml "$($Path + 'MailboxStatistics.xml')"
 $MbxStats.MoveHistory[0] | Export-Clixml "$($Path + 'MoveReport.xml')"
 
