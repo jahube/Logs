@@ -12,38 +12,15 @@ $DesktopPath = ([Environment]::GetFolderPath('Desktop'))
 [String]$logsPATH = [String]$(mkdir "$DesktopPath\MS-Logs\Migration-Stats-$ts")
 Start-Transcript "$logsPATH\Migration-Stats-$ts.txt" -Verbose
 
-$MigBatch = get-migrationbatch
-$MigUsers = get-migrationuser
-$MovReqst = Get-MoveRequest
+$MigratedMBX = get-mailbox -IncludeInactiveMailbox | where { "Migrated" -eq $_.RemoteRecipientType -and $_.WhenMailboxCreated -gt (get-date).AddMonths(-3) }
 
-$StatusComplete = @("Completed", "CompletedWithErrors")
-$StatusProgress = @("Synced", "Syncing", "SyncedWithErrors", "Failed", "Completing")
+$MigUsersCompleted = $MigratedMBX | Sort-Object WhenMailboxCreated -Descending | select userprincipalname,identity,WhenMailboxCreated -Last 8
 
-$MigUsersCompleted = $MigUsers | where { $_.status -in $StatusComplete }
-$MigUsersInProgess = $MigUsers | where { $_.status -in $StatusProgress }
-$MigBatchCompleted = $MigBatch | where { $_.status.value -in $StatusComplete }
-$MigBatchInProgess = $MigBatch | where { $_.status.value -in $StatusProgress }
-
-$MigUser | FT Identity,Identifier,BatchId,MailboxIdentifier,MailboxEmailAddress,MailboxGuid,Status,StatusSummary,HasUnapprovedSkippedItems,DataConsistencyScore -AutoSize
-
-$MovReqst | FT Id,Identity,Name,Alias,ExternalDirectoryObjectId,ExchangeGuid,Status,BatchName -AutoSize
-
-$MigBatch | FT Identity,Status,State,WorkflowStage,DataConsistencyScore,MigrationType,StartDateTime,LastSyncedDateTime -AutoSize
-
-ForEach ($M in $MigBatch) { [String]$Path = [String]$logsPATH + '\' + [String]$M.Identity + "_$($M.Status.value)_"
-Get-MigrationBatch $M.Identity.Id -IncludeReport -DiagnosticInfo "showtimeslots, showtimeline, verbose" | Export-Clixml "$($Path + 'MigrationBatch.xml')" }
-
-ForEach ($M in $MigUsersInProgess) { [String]$Path = [String]$logsPATH + '\' + [String]$M.Identity + "_$($M.BatchId)_$($M.Status)_"
-Get-MigrationUserStatistics $M.Identity -IncludeSkippedItems -IncludeReport -DiagnosticInfo "showtimeslots, showtimeline, verbose" | Export-Clixml "$($Path + 'MigrationUser.xml')"
-Get-MoveRequest $M.Identity | Export-Clixml "$($Path + '_MoveRequest.xml')"
-Get-MoveRequestStatistics $M.Identity -IncludeReport -DiagnosticInfo "showtimeslots, showtimeline, verbose" | Export-Clixml "$($Path + 'MoveRequestStatistics.xml')" }
-
-Get-MigrationEndpoint -DiagnosticInfo Verbose | Export-Clixml $logsPATH\MigrationEndpoint.xml
-Get-MigrationConfig | Export-Clixml $logsPATH\MigrationConfig.xml
+$MigratedMBX | fl WhenMailboxCreated
 
 ForEach ($M in $MigUsersCompleted) { [String]$Path = [String]$logsPATH + '\' + [String]$M.Identity + "_$($M.Status)_"
 
-$MbxStats = Get-MailboxStatistics $M.Identity -IncludeMoveReport -IncludeMoveHistory
+$MbxStats = Get-MailboxStatistics $M.userprincipalname -IncludeMoveReport -IncludeMoveHistory
 $MbxStats | Export-Clixml "$($Path + 'MailboxStatistics.xml')"
 $MbxStats.MoveHistory[0] | Export-Clixml "$($Path + 'MoveReport.xml')"
 
